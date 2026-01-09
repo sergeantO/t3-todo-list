@@ -11,12 +11,26 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    AUTH_DISCORD_ID: z.string(),
-    AUTH_DISCORD_SECRET: z.string(),
+    EMAIL_SERVER: z.string().optional(),
+    EMAIL_FROM: z.string().optional(),
+    EMAIL_APIKEY: z.string().optional(),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+  },
+
+  /**
+   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
+   * middlewares) or client-side so we need to destruct manually.
+   */
+  runtimeEnv: {
+    AUTH_SECRET: process.env.AUTH_SECRET,
+    EMAIL_SERVER: process.env.EMAIL_SERVER,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+    EMAIL_APIKEY: process.env.EMAIL_APIKEY,
+    DATABASE_URL: process.env.DATABASE_URL,
+    NODE_ENV: process.env.NODE_ENV,
   },
 
   /**
@@ -26,18 +40,6 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
-  },
-
-  /**
-   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
-   * middlewares) or client-side so we need to destruct manually.
-   */
-  runtimeEnv: {
-    AUTH_SECRET: process.env.AUTH_SECRET,
-    AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
-    AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
-    DATABASE_URL: process.env.DATABASE_URL,
-    NODE_ENV: process.env.NODE_ENV,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
