@@ -24,7 +24,7 @@ export default function CreateTodo() {
         const optimisticTodo = {
           id: Date.now().toString(),
           text: newTodoText,
-          completed: false,
+          done: false,
         };
 
         if (!prev) return [optimisticTodo];
