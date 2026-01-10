@@ -1,26 +1,99 @@
 # Архитектурные паттерны и решения
 
-*Последнее обновление: 2023-01-10*
-
-## Системная архитектура
-```mermaid
-graph LR
-    A[Клиент] --> B(Next.js Frontend)
-    B --> C[tRPC API]
-    C --> D[Prisma ORM]
-    D --> E[(PostgreSQL DB)]
-    C --> F[NextAuth.js]
-    F --> G[OAuth Провайдеры]
-```
+*Последнее обновление: 2025-01-11*
 
 ## Ключевые технические решения
-1. **End-to-end Type Safety**: Использование tRPC для типобезопасного взаимодействия клиент-сервер
-2. **Isomorphic Architecture**: Единая кодовая база для клиента и сервера
-3. **Optimistic UI**: Реализация мгновенных интерфейсных изменений через React Query
-4. **Stateless Auth**: Безсерверная аутентификация через JWT
+
+### 1. End-to-end Type Safety
+- **tRPC** для типобезопасного взаимодействия клиент-сервер
+- **Zod** для валидации на клиенте и сервере
+- **TypeScript** для статической типизации во время разработки
+- **zod-prisma-types** для генерации Zod типов из Prisma схемы
+
+### 2. Оптимистичные обновления (Optimistic UI)
+React Query используется для мгновенного обновления интерфейса:
+```typescript
+// При мутации UI обновляется немедленно (optimistic update)
+// Если операция на сервере успешна - оставляется оптимистичное значение
+// Если операция на сервере неудачна - данные восстанавливаются и показывается ошибка
+```
+
+**Преимущества:**
+- Мгновенный отклик на действия пользователя
+- Улучшенное восприятие производительности
+- Автоматическое восстановление при ошибках
+
+### 3. Разделение ответственности
+- **Backend логика**: Отделена в `src/server/api/routers/`
+- **Frontend логика**: Отделена в компонентах `src/app/_components/`
+- **Валидация данных**: Централизована в `src/schemas/`
+- **Аутентификация**: Управляется через `src/server/auth.ts`
+
+### 4. Многопользовательская изоляция
+Каждая задача связана с пользователем через `userId`:
+```prisma
+model Todo {
+  id     String @id @default(cuid())
+  text   String
+  done   Boolean @default(false)
+  userId String // Изоляция данных на уровне БД
+  user   User   @relation(fields: [userId], references: [id])
+}
+```
 
 ## Паттерны проектирования
-- **Repository Pattern**: Prisma как слой абстракции для работы с БД
-- **Observer Pattern**: Реактивные обновления через React Query
-- **Factory Pattern**: Генерация форм через Zod-схемы
-- **Decorator Pattern**: Расширение базовой функциональности tRPC middleware
+
+### Repository Pattern
+Prisma используется как слой абстракции для работы с БД:
+```typescript
+// src/server/api/routers/todo.ts
+export const todoRouter = createTRPCRouter({
+  all: protectedProcedure.query(({ ctx }) => {
+    return ctx.db.todo.findMany({ where: { userId: ctx.session.user.id } });
+  }),
+  // ...
+});
+```
+
+### Observer Pattern
+Реактивные обновления через React Query:
+```typescript
+// Автоматическая синхронизация между вкладками браузера
+// Инвалидация кеша при мутациях
+const utils = api.useUtils();
+await utils.todo.all.invalidate();
+```
+
+### Factory Pattern
+Генерация валидированных объектов через Zod-схемы:
+```typescript
+const createTodoSchema = z.object({
+  text: z.string().min(1).max(100),
+});
+```
+
+### Decorator Pattern
+Расширение базовой функциональности через tRPC middleware (auth, logging, etc.)
+
+## Преимущества текущей архитектуры:
+- Разделение выполняется на клиенте → полный контроль над UI
+- Не требует дополнительных запросов к серверу
+- Минимальные изменения в backend
+- Существующая логика оптимистичных обновлений работает как есть
+
+## Паттерны безопасности
+
+### Аутентификация
+- NextAuth.js управляет сессиями пользователей
+- JWT токены для stateless authentication
+- Protected procedures в tRPC требуют валидной сессии
+
+### Авторизация
+- На уровне БД: каждая запись связана с `userId`
+- На уровне API: protected procedures проверяют `ctx.session`
+- Предотвращение несанкционированного доступа к чужим задачам
+
+### Валидация
+- Zod схемы на клиенте (улучшенный UX)
+- Повторная валидация на сервере (безопасность)
+- Защита от инъекций и некорректных данных

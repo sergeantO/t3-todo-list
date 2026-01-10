@@ -121,7 +121,7 @@ export function TodoList() {
     </div>
   );
 
-  const Section = ({
+  const TaskSection = ({
     title,
     items,
     isOpen,
@@ -161,13 +161,13 @@ export function TodoList() {
 
   return (
     <div className="w-full">
-      <Section
+      <TaskSection
         title="Active Tasks"
         items={activeTodos}
         isOpen={isActiveSectionOpen}
         onToggle={() => setIsActiveSectionOpen(!isActiveSectionOpen)}
       />
-      <Section
+      <TaskSection
         title="Completed Tasks"
         items={completedTodos}
         isOpen={isCompletedSectionOpen}
