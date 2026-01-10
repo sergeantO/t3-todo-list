@@ -1,5 +1,6 @@
 "use client";
 
+import toast from "react-hot-toast";
 import { clientapi } from "~/trpc/react";
 
 // TODO: lock and animate a todo item on toggle or delete
@@ -14,9 +15,62 @@ export function TodoList() {
 
   const { mutate: doneMutation } = clientapi.todo.toggle.useMutation({
     onSettled: invalidateAll,
+    onSuccess: (data, { done, id }, context) => {
+      if (done) {
+        toast.success(`Todo '${id}' toggled to done`);
+      }
+    },
+    onMutate: async ({ id, done }) => {
+      // Cancel any outgoing refetches,
+      // so they don't overwrite our optimistic update.
+      await utils.todo.all.cancel();
+
+      // Snapshot the previous value
+      const previousTodos = utils.todo.all.getData();
+
+      // Optimistically update to the new value
+      utils.todo.all.setData(undefined, (prev) => {
+        if (!prev) return previousTodos;
+        return prev.map((todo) => {
+          if (todo.id === id) {
+            return { ...todo, done };
+          }
+          return todo;
+        });
+      });
+
+      return { previousTodos };
+    },
+    onError: (error, newTodo, context) => {
+      toast.error(
+        `Failed to toggle todo to ${newTodo.done ? "done" : "undone"}`,
+      );
+      utils.todo.all.setData(undefined, () => context?.previousTodos);
+    },
   });
+
   const { mutate: deleteMutation } = clientapi.todo.delete.useMutation({
     onSettled: invalidateAll,
+    onMutate: async (deletedId: string) => {
+      // Cancel any outgoing refetches,
+      // so they don't overwrite our optimistic update.
+      await utils.todo.all.cancel();
+
+      // Snapshot the previous value
+      const previousTodos = utils.todo.all.getData();
+
+      // Optimistically update to the new value
+      utils.todo.all.setData(undefined, (prev) => {
+        if (!prev) return previousTodos;
+        return prev.filter((todo) => todo.id !== deletedId);
+      });
+
+      return { previousTodos };
+    },
+    onError: (error, newTodo, context) => {
+      toast.error("Failed to create todo");
+      utils.todo.all.setData(undefined, () => context?.previousTodos);
+    },
   });
 
   const toggleHandler = (

@@ -11,6 +11,33 @@ export default function CreateTodo() {
 
   const utils = clientapi.useUtils();
   const { mutate } = clientapi.todo.create.useMutation({
+    onMutate: async () => {
+      // Cancel any outgoing refetches,
+      // so they don't overwrite our optimistic update.
+      await utils.todo.all.cancel();
+
+      // Snapshot the previous value
+      const previousTodos = utils.todo.all.getData();
+
+      // Optimistically update to the new value
+      utils.todo.all.setData(undefined, (prev) => {
+        const optimisticTodo = {
+          id: Date.now().toString(),
+          text: newTodoText,
+          completed: false,
+        };
+
+        if (!prev) return [optimisticTodo];
+        return [...prev, optimisticTodo];
+      });
+
+      return { previousTodos };
+    },
+    onError: (error, newTodo, context) => {
+      setNewTodoText(newTodo.text);
+      toast.error("Failed to create todo");
+      utils.todo.all.setData(undefined, () => context?.previousTodos);
+    },
     onSettled: async () => {
       await utils.todo.all.invalidate();
     },
