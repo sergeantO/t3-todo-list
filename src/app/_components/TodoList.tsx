@@ -4,6 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { clientapi } from "~/trpc/react";
 import { TodosSection } from "./TodosSection";
+import { TodoItem } from "./TodoItem";
 
 export function TodoList() {
   const { data: todos, isPending, isError } = clientapi.todo.all.useQuery();
@@ -70,11 +71,12 @@ export function TodoList() {
     },
   });
 
-  const toggleHandler = (
-    id: string,
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    doneMutation({ id, done: event.target.checked });
+  const handleToggle = (id: string, done: boolean) => {
+    doneMutation({ id, done });
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation(id);
   };
 
   if (isPending) return "Loading...";
@@ -84,43 +86,6 @@ export function TodoList() {
 
   const activeTodos = todos.filter((todo) => !todo.done);
   const completedTodos = todos.filter((todo) => todo.done);
-
-  const TodoItem = ({
-    id,
-    done,
-    text,
-  }: {
-    id: string;
-    done: boolean;
-    text: string;
-  }) => (
-    <div className="my-3.5 flex items-center justify-between gap-2 rounded bg-gray-800 p-3">
-      <div className="flex flex-1 items-center gap-3">
-        <input
-          className="h-4 w-4 cursor-pointer rounded border border-gray-400 bg-gray-700 accent-blue-500"
-          type="checkbox"
-          name="done"
-          id={id}
-          checked={done}
-          onChange={(e) => toggleHandler(id, e)}
-        />
-        <label
-          htmlFor={id}
-          className={`flex-1 cursor-pointer ${
-            done ? "text-gray-400 line-through" : "text-white"
-          }`}
-        >
-          {text}
-        </label>
-      </div>
-      <button
-        className="rounded bg-red-700 px-3 py-1 text-sm font-medium text-white transition-colors hover:bg-red-800"
-        onClick={() => deleteMutation(id)}
-      >
-        Delete
-      </button>
-    </div>
-  );
 
   return (
     <div className="w-full">
@@ -132,7 +97,14 @@ export function TodoList() {
         emptyMessage="No active tasks"
       >
         {activeTodos.map((todo) => (
-          <TodoItem key={todo.id} {...todo} />
+          <TodoItem
+            key={todo.id}
+            id={todo.id}
+            done={todo.done}
+            text={todo.text}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+          />
         ))}
       </TodosSection>
       <TodosSection
@@ -143,7 +115,14 @@ export function TodoList() {
         emptyMessage="No completed tasks"
       >
         {completedTodos.map((todo) => (
-          <TodoItem key={todo.id} {...todo} />
+          <TodoItem
+            key={todo.id}
+            id={todo.id}
+            done={todo.done}
+            text={todo.text}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+          />
         ))}
       </TodosSection>
     </div>
