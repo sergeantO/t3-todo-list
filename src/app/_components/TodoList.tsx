@@ -3,6 +3,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { clientapi } from "~/trpc/react";
+import { TodosSection } from "./TodosSection";
 
 export function TodoList() {
   const { data: todos, isPending, isError } = clientapi.todo.all.useQuery();
@@ -121,58 +122,30 @@ export function TodoList() {
     </div>
   );
 
-  const TaskSection = ({
-    title,
-    items,
-    isOpen,
-    onToggle,
-  }: {
-    title: string;
-    items: Array<{ id: string; done: boolean; text: string }>;
-    isOpen: boolean;
-    onToggle: () => void;
-  }) => (
-    <div className="mb-6 overflow-hidden rounded-lg border border-gray-600">
-      <button
-        onClick={onToggle}
-        className="hover:bg-gray-650 flex w-full items-center justify-between bg-gray-700 px-4 py-3 text-left font-semibold text-gray-100 transition-colors"
-      >
-        <span>
-          {title} ({items.length})
-        </span>
-        <span className="text-lg">{isOpen ? "▼" : "▶"}</span>
-      </button>
-
-      {isOpen && (
-        <div className="bg-gray-800 p-4">
-          {items.length > 0 ? (
-            <div className="space-y-2">
-              {items.map((todo) => (
-                <TodoItem key={todo.id} {...todo} />
-              ))}
-            </div>
-          ) : (
-            <p className="py-2 text-gray-400">No {title.toLowerCase()}</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="w-full">
-      <TaskSection
+      <TodosSection
         title="Active Tasks"
         items={activeTodos}
         isOpen={isActiveSectionOpen}
         onToggle={() => setIsActiveSectionOpen(!isActiveSectionOpen)}
-      />
-      <TaskSection
+        emptyMessage="No active tasks"
+      >
+        {activeTodos.map((todo) => (
+          <TodoItem key={todo.id} {...todo} />
+        ))}
+      </TodosSection>
+      <TodosSection
         title="Completed Tasks"
         items={completedTodos}
         isOpen={isCompletedSectionOpen}
         onToggle={() => setIsCompletedSectionOpen(!isCompletedSectionOpen)}
-      />
+        emptyMessage="No completed tasks"
+      >
+        {completedTodos.map((todo) => (
+          <TodoItem key={todo.id} {...todo} />
+        ))}
+      </TodosSection>
     </div>
   );
 }
