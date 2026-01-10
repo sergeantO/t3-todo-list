@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { createInputSchema } from "~/schemas/todo";
 import { clientapi } from "~/trpc/react";
 
+// TODO disable button on submit
 export default function CreateTodo() {
   const [newTodoText, setNewTodoText] = useState("");
 
@@ -33,8 +34,9 @@ export default function CreateTodo() {
 
       // Create todo mutation
       mutate(createTodoData);
+      setNewTodoText("");
     },
-    [newTodoText],
+    [newTodoText, mutate],
   );
 
   const onChangeInputHandler = useCallback(

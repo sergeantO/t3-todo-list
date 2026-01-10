@@ -2,8 +2,29 @@
 
 import { clientapi } from "~/trpc/react";
 
+// TODO: lock and animate a todo item on toggle or delete
 export function TodoList() {
   const { data: todos, isPending, isError } = clientapi.todo.all.useQuery();
+
+  // Refresh the list after toggling the todo's done status
+  const utils = clientapi.useUtils();
+  const invalidateAll = async () => {
+    await utils.todo.all.invalidate();
+  };
+
+  const { mutate: doneMutation } = clientapi.todo.toggle.useMutation({
+    onSettled: invalidateAll,
+  });
+  const { mutate: deleteMutation } = clientapi.todo.delete.useMutation({
+    onSettled: invalidateAll,
+  });
+
+  const toggleHandler = (
+    id: string,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    doneMutation({ id, done: event.target.checked });
+  };
 
   if (isPending) return "loading...";
   if (isError) return "error";
@@ -11,7 +32,7 @@ export function TodoList() {
   if (todos.length < 1) return "Create your first todo...";
 
   return (
-    <>
+    <div className="">
       {todos.map((todo) => {
         const { id, done, text } = todo;
         return (
@@ -24,9 +45,7 @@ export function TodoList() {
                   name="done"
                   id={id}
                   checked={done}
-                  // onChange={(e) => {
-                  //   doneMutation({ id, done: e.target.checked });
-                  // }}
+                  onChange={(e) => toggleHandler(id, e)}
                 />
                 <label
                   htmlFor={id}
@@ -37,9 +56,7 @@ export function TodoList() {
               </div>
               <button
                 className="w-full rounded-lg bg-blue-700 px-2 py-1 text-center text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 focus:outline-none sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                // onClick={() => {
-                //   deleteMutation(id);
-                // }}
+                onClick={() => deleteMutation(id)}
               >
                 Delete
               </button>
@@ -47,6 +64,6 @@ export function TodoList() {
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
