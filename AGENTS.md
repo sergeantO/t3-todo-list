@@ -1,41 +1,48 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+В этом проекте для отслеживания задач используется **bd** (beads). Для начала работы запусти `bd onboard`.
 
-## Quick Reference
+Используй 'bd' для отслеживания задач
+
+## Краткий справочник
 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
-bd close <id>         # Complete work
-bd sync               # Sync with git
+bd ready # Найти доступную работу
+bd show <id> # Просмотреть подробности задачи
+bd update <id> --status in_progress # Занять работу
+bd close <id> # Завершить работу
+bd sync # Синхронизировать с git
 ```
 
-## Landing the Plane (Session Completion)
+## Завершение работы (Сессия)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**При завершении рабочей сессии** необходимо выполнить ВСЕ описанные ниже шаги. Работа НЕ считается завершенной, пока не будет успешно выполнена команда `git push`.
 
-**MANDATORY WORKFLOW:**
+**ОБЯЗАТЕЛЬНЫЙ РАБОЧИЙ ПРОЦЕСС:**
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+1. **Создание задач для оставшейся работы** - Создавай задачи для всего, что требует дальнейшего выполнения.
+2. **Проверка качества** (если код изменился) - Тесты, линтеры, сборки.
+3. **Обновление статуса задачи** - Закрытие завершенной работы, обновление незавершенных элементов.
+4. **ОТПРАВКА НА УДАЛЕННЫЙ РЕПОЗИТОРИЙ** - Это ОБЯЗАТЕЛЬНО:
+```bash
+git pull --rebase
+bd sync
+git push
+git status # ДОЛЖНО показывать "up to date with origin"
+```
+5. **Очистка** - Очистка stash-файлов, удаление удаленных веток.
+6. **Проверка** - Все изменения зафиксированы и отправлены.
+7. **Передача** - Предоставление контекста для следующей сессии.
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+**КРИТИЧЕСКИ ВАЖНЫЕ ПРАВИЛА:**
+- Работа НЕ считается завершенной, пока команда `git push` не будет успешно выполнена.
+- НИКОГДА не останавливайтесь до отправки изменений - это оставляет работу незавершенной локально.
+- НИКОГДА не говори "готово к отправке" - ТЫ должен отправить запрос
+- Если отправка запроса не удалась, устрани проблему и повтори попытку, пока она не увенчается успехом
 
-Use 'bd' for task tracking
+## Документация
+Документация хранится в папке `docs`.
+1. `docs/projectbrief.md` - Краткое описание проекта.
+2. `docs/productContext.md` - Описание продукта и его контекста.
+3. `docs/systemPatterns.md` - Описание программных и системных шаблонов и их применения.
+4. `docs/techContext.md` - Описание технологического стека.
