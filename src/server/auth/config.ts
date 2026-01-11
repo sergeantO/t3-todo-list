@@ -31,9 +31,9 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-const host = (env.EMAIL_SERVER as string) ?? "https://localhost:3000";
-const apikey = (env.EMAIL_APIKEY as string) ?? "apikey";
-const email = (env.EMAIL_FROM as string) ?? "test@test.com";
+const host = env.EMAIL_SERVER! ?? "https://localhost:3000";
+const apikey = env.EMAIL_APIKEY! ?? "apikey";
+const email = env.EMAIL_FROM! ?? "test@test.com";
 
 export const authConfig = {
   providers: [
