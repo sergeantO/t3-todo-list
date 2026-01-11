@@ -10,7 +10,8 @@ generator zod {
   provider         = "zod-prisma-types"
   output           = "../generated/prisma-zod"
   prismaClientPath = "../prisma"
-  useMultipleFiles = false
+  createInputTypes = false
+  useMultipleFiles = true
 }
 
 datasource db {
